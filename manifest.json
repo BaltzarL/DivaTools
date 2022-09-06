@@ -1,0 +1,26 @@
+{
+    "name": "Diva Tools",
+    "description": "Adds various buttons to make input easier",
+    "version": "1.0",
+    "manifest_version": 3,
+    "content_scripts": [
+        {
+            "matches": [
+                "https://kth.diva-portal.org/dream/add/add2.jsf"
+            ],
+            "js": [
+                "page2.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "tinyMCE.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+tinyMCE.triggerSave();
