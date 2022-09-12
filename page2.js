@@ -36,11 +36,9 @@ window.addEventListener('load', function() {
         let parent = langButton.parentElement.parentElement;
         let swedishBtt = getButton("Svenska", function() {
             langButton.selectedIndex = 2;
-            saveForm();
         });
         let englishBtt = getButton("Engelska", function() {
             langButton.selectedIndex = 1;
-            saveForm();
         });
         parent.appendChild(swedishBtt);
         parent.appendChild(englishBtt);
@@ -51,9 +49,9 @@ window.addEventListener('load', function() {
     addAllLanguageButtons = () => {
         console.log("Added all Language Buttons!");
         document.querySelectorAll("div.diva2addtextchoicecol").forEach(element => {
-            if ((element.innerText.includes('Language:') || element.innerText.includes('Språk:')) && element.parentElement.querySelector("#languageButton") == null) {
+            if ((element.innerText.includes('Language:') || element.innerText.includes('Språk:')) && element.parentElement.querySelector(".languageButton") == null) {
                 let button = element.parentElement.querySelector("div.diva2addtextchoicebox > select");
-                button.id = "languageButton";
+                button.classList.add("languageButton");
                 addLanguageButton(button);
             }
         });
