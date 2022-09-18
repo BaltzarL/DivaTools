@@ -7,6 +7,11 @@
 // @author      Baltzar Lagerros
 // @description Various extra goodies for Diva
 // ==/UserScript==
+
+// Timeout between changes in document
+// cant really make this much lower because abstracts take some time to add.
+const timeout = 2000;
+
 window.addEventListener('load', function() {
     // Create a button based on name an onclick function
     getButton = (name, func) => {
@@ -127,7 +132,47 @@ window.addEventListener('load', function() {
     };
     addAllMasterButtons();
 
+    findElementsByText = (selector, ...texts) => {
+        return Array.from(document.querySelectorAll(selector))
+            .filter(element => texts.some((text) => element.innerText.includes(text)));
+    };
 
+    findElementsByValue = (selector, ...values) => {
+        return Array.from(document.querySelectorAll(selector))
+            .filter(element => values.some((value) => element.value.includes(value)));
+    };
+
+    // Sets a name in the authority name popup.
+    setAuthoryName = (name) => {
+        let input = document.querySelector("div.diva2orginputbox input");
+        if (input) input.value = name;
+    };
+
+    // Adds [Search name] buttons next to all authority records to quickly search the entered name.
+    addAllAuthorityButtons = () => {
+        findElementsByValue("input.iceCmdBtn.diva2addsokbuttonperson.diva2backgroundcolor", "authority record", "personpost").forEach((element) => {
+            let searchClass = "searchButton"
+
+            let searchButton = getButton("Search name", function() {
+                let box = element.parentElement.parentElement.parentElement;
+                let names = box.querySelectorAll("div.diva2addtextplusname input");
+                let firstName = names[0]?.value ?? "";
+                let lastName = names[1]?.value ?? "";
+                let fullName = `${firstName} ${lastName}`.trim();
+                element.click();
+
+                // Takes some time for the popup to appear
+                setTimeout(() => {
+                    setAuthoryName(fullName);
+                }, timeout);
+            });
+            searchButton.classList.add(searchClass);
+
+            if (element.parentElement.querySelectorAll("." + searchClass).length == 0) {
+                element.parentElement.appendChild(searchButton);
+            };
+        });
+    };
 
     // Allows you to paste data copied from TRITA!
     addPasteTrita = () => {
@@ -144,10 +189,36 @@ window.addEventListener('load', function() {
                             let separationRegex = /(?:\s+and\s+|\s*,\s*)/
                             // The extra timeout between clicking the examiner/supervisor button 
                             // and accessing the element. Cannot be 0 because they layout takes time to generate.
-                            let timeout = 2000;
 
                             // Saves the trita for the pdf button.
                             document.trita = split[0];
+
+                            // Set ISSN series ----------------
+
+                            // Do not do anything if there is already a series added.
+                            if (document.querySelectorAll("input[id*='0:seriesNumber']").length == 0) {
+                                // Do this last because otherwise it will interfere with supervisor/examiner pasting!
+                                setTimeout(() => {
+                                    let issnText = findElementsByText("div.diva2addtextplus5 > div", "/ISSN")[0];
+                                    let issSelector = issnText.parentElement.parentElement.querySelectorAll("select")[0];
+
+                                    // Hardcoded TRITA-EECS-EX, searches for the option with that name.
+                                    let issIndex = Array.from(issSelector.options).filter(option => option.innerText.includes("TRITA-EECS-EX"))[0]?.index ?? -1;
+                                    issSelector.selectedIndex = issIndex;
+                                    let evt = document.createEvent("HTMLEvents");
+                                    evt.initEvent("change", false, true);
+                                    issSelector.dispatchEvent(evt);
+                                }, timeout);
+
+                                // Do this after the element has been added.
+                                setTimeout(() => {
+                                    let seriesNumberInput = document.querySelector("input[id*='0:seriesNumber']");
+                                    // Get trita number: TRITA-EECS-EX-2022:123 -> 123
+                                    seriesNumberInput.value = split[0].match(/.*:(\d+)/)[1];
+                                }, timeout * 2);
+                            };
+
+                            // ---------------------------------
 
                             // Set year.
                             let tritaYear = split[0].match(/\d{4}/g);
@@ -178,7 +249,6 @@ window.addEventListener('load', function() {
                             };
 
                             let addYear = (personalNumber, yearSelector) => {
-                                console.log(personalNumber);
                                 // Personal number can be YYMMDD-XXXX or YYYYMMDD-XXXX
                                 let isSmallNumber = personalNumber.length == 11 || personalNumber.split(/\s*-\s*/)[0].trim().length == 6;
 
@@ -216,8 +286,7 @@ window.addEventListener('load', function() {
                                 // add the appropiate name.
                                 if (noElements) {
                                     setTimeout(() => {
-                                        let authorButton = Array.from(document.querySelectorAll("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor"))
-                                            .filter(element => element.value.includes("author"))[0];
+                                        let authorButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "author", "författare", "forfatter")[0];
                                         authorButton?.click();
                                     }, timeout * index);
                                     // Because all iterations of names fire at roughly the same time we need to separate them in
@@ -249,8 +318,7 @@ window.addEventListener('load', function() {
                                 // add the appropiate name.
                                 if (noElements) {
                                     setTimeout(() => {
-                                        let examinerButton = Array.from(document.querySelectorAll("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor"))
-                                            .filter(element => element.value.includes("examiner"))[0];
+                                        let examinerButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "examiner", "examinator", "eksaminator")[0];
                                         examinerButton?.click();
                                     }, timeout * index);
                                     // Because all iterations of names fire at roughly the same time we need to separate them in
@@ -271,8 +339,7 @@ window.addEventListener('load', function() {
 
                                 if (noElements) {
                                     setTimeout(() => {
-                                        let supervisorButton = Array.from(document.querySelectorAll("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor"))
-                                            .filter(element => element.value.includes("supervisor"))[0];
+                                        let supervisorButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "supervisor", "veileder", "handledare")[0];
                                         supervisorButton?.click();
                                     }, timeout * index);
                                     setTimeout(() => {
@@ -321,25 +388,39 @@ window.addEventListener('load', function() {
             onClickHooks.length = 0;
             console.log("Abstract button updated.");
             // Get the first button with abstract in the name, the "Another Abstract" button.
-            let abstractButton = Array.from(document.querySelectorAll("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor"))
-                .filter(element => element.value.includes("abstract") || element.value.includes("Legg til fritextbeskrivning"))[0];
-            let removalButton = abstractButton.parentElement.parentElement.parentElement.querySelector("div.diva2addtextsquare > a.iceCmdLnk.diva2addtextend");
+            let abstractButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "abstract", "fritextbeskrivning")[0];
+
+            //let removalButton = abstractButton.parentElement.parentElement.parentElement.querySelector("div.diva2addtextsquare > a.iceCmdLnk.diva2addtextend");
             onClickHooks.push(abstractButton);
-            onClickHooks.push(removalButton);
+            //onClickHooks.push(removalButton);
 
-            let addExamButton = Array.from(document.querySelectorAll("input.diva2addsokbutton.diva2backgroundcolor"))
-                .filter(element => element.value.includes("Another degree") || element.value.includes("Ytterligare examen") || element.value.includes("Legg til eksamen"))[0];
-            let examRemovalButton = addExamButton.parentElement.parentElement.querySelector("div.diva2addtextsquare > a.diva2addtextend");
+            let addExamButton = findElementsByValue("input.diva2addsokbutton.diva2backgroundcolor", "Another degree", "Ytterligare examen", "Legg til eksamen")[0];
+
+            //let examRemovalButton = addExamButton.parentElement.parentElement.querySelector("div.diva2addtextsquare > a.diva2addtextend");
             onClickHooks.push(addExamButton);
-            if (examRemovalButton != null) {
-                onClickHooks.push(examRemovalButton);
-            };
+            //if (examRemovalButton != null) {
+            //    onClickHooks.push(examRemovalButton);
+            //};
 
-            let addAuthorButton = Array.from(document.querySelectorAll("input.diva2addsokbutton.diva2backgroundcolor"))
-                .filter(element => element.value.includes("Another author") || element.value.includes("Ytterligare författare") || element.value.includes("Legg til forfatter"))[0];
+            let addAuthorButton = findElementsByValue("input.diva2addsokbutton.diva2backgroundcolor", "Another author", "Ytterligare författare", "Legg til forfatter")[0];
 
             onClickHooks.push(addAuthorButton);
+            let keywords = Array.from(document.querySelectorAll("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor[id*='addForm:keywordList:']")).pop();
+            let keywordsDeleteButton = Array.from(document.querySelectorAll("a.iceCmdLnk.diva2addtextend[id*='addForm:keywordList:']")).pop();
+
+            onClickHooks.push(keywords);
+            onClickHooks.push(keywordsDeleteButton);
+
+            let examinerButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "examiner", "examinator", "eksaminator")[0];
+            onClickHooks.push(examinerButton);
+
+            let supervisorButton = findElementsByValue("input.iceCmdBtn.diva2addsokbutton.diva2backgroundcolor", "supervisor", "veileder", "handledare")[0];
+            onClickHooks.push(supervisorButton);
+
             onClickHooks = onClickHooks.concat(Array.from(document.querySelectorAll(`a[id*='removePerson']`)));
+
+            // Adds all the removal buttons.
+            onClickHooks = onClickHooks.concat(Array.from(document.querySelectorAll(`div.diva2addtextsquare > a`)));
         };
 
         // Appends another function to the element which runs when the original onclick is completed.
@@ -350,18 +431,6 @@ window.addEventListener('load', function() {
                     newFunc();
                 }
             );
-
-            /*
-            element.onclick = (() => {
-                let cachedFunction = element.onclick;
-                console.log("cachedFunction");
-                console.log(cachedFunction);
-                return function () {
-                    var result = cachedFunction.apply(this, arguments);
-                    newFunc();
-                    return result;
-                };
-            })();*/
         };
 
 
@@ -377,7 +446,7 @@ window.addEventListener('load', function() {
                         updateHooks();
                         updateAllHookedElements();
                         addAllMasterButtons();
-                    }, 1000);
+                    }, timeout);
                 });
             });
         };
@@ -389,6 +458,14 @@ window.addEventListener('load', function() {
 
     addAllLanguageButtons();
     addAllPasteButtons();
+
+    addAllAuthorityButtons();
+    // This is needed since searching for authorities removes this button and it's hard to hook that.
+    const addAllAuthorityButtonsLoop = () => setTimeout(() => {
+        addAllAuthorityButtons();
+        addAllAuthorityButtonsLoop();
+    }, timeout * 5);
+    addAllAuthorityButtonsLoop();
 
     // Other information > Year
     // Adds a currrent year button
