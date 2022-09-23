@@ -213,8 +213,8 @@ window.addEventListener('load', function() {
                                 // Do this after the element has been added.
                                 setTimeout(() => {
                                     let seriesNumberInput = document.querySelector("input[id*='0:seriesNumber']");
-                                    // Get trita number: TRITA-EECS-EX-2022:123 -> 123
-                                    seriesNumberInput.value = split[0].match(/.*:(\d+)/)[1];
+                                    // Get trita number: TRITA-EECS-EX-2022:123 -> 2022:123
+                                    seriesNumberInput.value = split[0].split("-").pop(); //.match(/.*:(\d+)/)[1];
                                 }, timeout * 2);
                             };
 
