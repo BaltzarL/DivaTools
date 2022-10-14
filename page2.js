@@ -132,6 +132,77 @@ window.addEventListener('load', function() {
     };
     addAllMasterButtons();
 
+    // Adds the course and program save buttons
+    addCourseProgramButtons = () => {
+        // Since they lack presistent ids for the element I'll just use the option value
+        // if this function breaks in the future just check these selectors
+        educationalProgramOptions = document.querySelectorAll("option[value='10522']");
+        subjectOptions = document.querySelectorAll("option[value='10260']");
+
+        for (let i = 0; i < educationalProgramOptions.length; i++) {
+            // Do not add the element twice!
+            if (document.querySelector(`#subjectButton${i}`) == null) {
+                let savedName = localStorage.getItem("SavedSubjectName") ?? "None saved";
+
+                let subjectButton = getButton(savedName, () => {
+                    let currentSaved = localStorage.getItem("SavedSubjectValue") ?? "-1";
+                    educationalProgramOptions[i].parentElement.value = currentSaved;
+                });
+
+                subjectButton.id = `subjectButton${i}`
+                let subjectContainer = educationalProgramOptions[i].parentElement.parentElement.parentElement
+                subjectContainer.style.display = "flex";
+                subjectContainer.style.alignItems = "stretch";
+                subjectContainer.style.flexDirection = "column-reverse";
+                subjectContainer.style.gap = "10px";
+                educationalProgramOptions[i].parentElement.style.width = "100%";
+
+                let subjectSaveButton = getButton("Save", () => {
+                    let currentOption = educationalProgramOptions[i].parentElement?.value;
+                    let currentName = educationalProgramOptions[i].parentElement.selectedOptions[0]?.text?.trim();
+                    localStorage.setItem("SavedSubjectValue", currentOption);
+                    localStorage.setItem("SavedSubjectName", currentName);
+                    subjectButton.value = currentName;
+                });
+                subjectSaveButton.id = `subjectSaveButton${i}`
+
+                subjectContainer.appendChild(subjectSaveButton);
+                subjectContainer.appendChild(subjectButton);
+            };
+            if (document.querySelector(`#programButton${i}`) == null) {
+                let savedName = localStorage.getItem("SavedProgramName") ?? "None saved";
+
+                let programButton = getButton(savedName, () => {
+                    let currentSaved = localStorage.getItem("SavedProgramValue") ?? "-1";
+                    subjectOptions[i].parentElement.value = currentSaved;
+                });
+
+                programButton.id = `programButton${i}`
+
+                let programSaveButton = getButton("Save", () => {
+                    let currentOption = subjectOptions[i].parentElement?.value;
+                    let currentName = subjectOptions[i].parentElement.selectedOptions[0]?.text?.trim();
+                    localStorage.setItem("SavedProgramValue", currentOption);
+                    localStorage.setItem("SavedProgramName", currentName);
+                    programButton.value = currentName;
+                });
+                programSaveButton.id = `programSaveButton${i}`
+                let programContainer = subjectOptions[i].parentElement.parentElement.parentElement
+
+                programContainer.appendChild(programSaveButton);
+                programContainer.appendChild(programButton);
+
+                programContainer.style.display = "flex";
+                programContainer.style.alignItems = "stretch";
+                programContainer.style.flexDirection = "column-reverse";
+                programContainer.style.gap = "10px";
+                subjectOptions[i].parentElement.style.width = "100%";
+            };
+        };
+    };
+
+    addCourseProgramButtons();
+
     findElementsByText = (selector, ...texts) => {
         return Array.from(document.querySelectorAll(selector))
             .filter(element => texts.some((text) => element.innerText.includes(text)));
@@ -176,7 +247,6 @@ window.addEventListener('load', function() {
 
     // Allows you to paste data copied from TRITA!
     addPasteTrita = () => {
-        let globalPaste = document.querySelector("div[id='addForm:authorSerie']");
         let pasteButton = getButton("[Paste Personal Info]", function() {
             navigator.clipboard.readText()
                 .then(text => {
@@ -205,9 +275,9 @@ window.addEventListener('load', function() {
                                     // Hardcoded TRITA-EECS-EX, searches for the option with that name.
                                     let issIndex = Array.from(issSelector.options).filter(option => option.innerText.includes("TRITA-EECS-EX"))[0]?.index ?? -1;
                                     issSelector.selectedIndex = issIndex;
-                                    let evt = document.createEvent("HTMLEvents");
-                                    evt.initEvent("change", false, true);
-                                    issSelector.dispatchEvent(evt);
+                                    // let evt = document.createEvent("HTMLEvents");
+                                    // evt.initEvent("change", false, true);
+                                    // issSelector.dispatchEvent(evt);
                                 }, timeout);
 
                                 // Do this after the element has been added.
@@ -228,16 +298,7 @@ window.addEventListener('load', function() {
                                 document.querySelector("input[id='addForm:atYear']").value = tritaYear[0];
                             }
 
-                            // Open PDF button, only adds the button once.
-                            if (document.querySelector("#open-pdf") == null) {
-                                let pdfButton = getButton("[Open PDF]", function() {
-                                    console.log(document.trita);
-                                    let tritaYear = document.trita.match(/\d{4}/g)[0];
-                                    window.open(`https://kth-my.sharepoint.com/personal/angbri_ug_kth_se/Documents/PDF-%20Exjobb/${tritaYear}/${document.trita.replace(":", "-")}.pdf`, '_blank');
-                                });
-                                pdfButton.id = "open-pdf";
-                                globalPaste.prepend(pdfButton);
-                            };
+                            addOpenPdfButton();
 
                             // Takes in a full name, splits it and sets the appropiate value in the elements
                             // defined by the selector
@@ -362,12 +423,27 @@ window.addEventListener('load', function() {
         // Prevent re-adding the button
         let id = "pasteTrita";
         pasteButton.id = id;
+        let globalPaste = document.querySelector("div[id='addForm:authorSerie']");
         if (document.querySelectorAll(`#${id}`).length == 0) {
             globalPaste.prepend(pasteButton);
         };
     };
 
     addPasteTrita();
+
+    addOpenPdfButton = () => {
+        // Open PDF button, only adds the button once.
+        if (document.querySelector("#open-pdf") == null && document.trita) {
+            let globalPaste = document.querySelector("div[id='addForm:authorSerie']");
+            let pdfButton = getButton("[Open PDF]", function() {
+                console.log(document.trita);
+                let tritaYear = document.trita.match(/\d{4}/g)[0];
+                window.open(`https://kth-my.sharepoint.com/personal/angbri_ug_kth_se/Documents/PDF-%20Exjobb/${tritaYear}/${document.trita.replace(":", "-")}.pdf`, '_blank');
+            });
+            pdfButton.id = "open-pdf";
+            globalPaste.prepend(pdfButton);
+        };
+    };
 
     addAllPasteButtons = () => {
         // Adds paste buttons to all elements.
@@ -446,6 +522,8 @@ window.addEventListener('load', function() {
                         updateHooks();
                         updateAllHookedElements();
                         addAllMasterButtons();
+                        addCourseProgramButtons();
+                        addOpenPdfButton();
                     }, timeout);
                 });
             });
