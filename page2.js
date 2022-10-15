@@ -275,17 +275,18 @@ window.addEventListener('load', function() {
                                     // Hardcoded TRITA-EECS-EX, searches for the option with that name.
                                     let issIndex = Array.from(issSelector.options).filter(option => option.innerText.includes("TRITA-EECS-EX"))[0]?.index ?? -1;
                                     issSelector.selectedIndex = issIndex;
-                                    // let evt = document.createEvent("HTMLEvents");
-                                    // evt.initEvent("change", false, true);
-                                    // issSelector.dispatchEvent(evt);
-                                }, timeout);
+                                    let evt = document.createEvent("HTMLEvents");
+                                    // Setting a smaller timeout will make it activate the button twice if you have multiple authors!
+                                    evt.initEvent("change", false, true);
+                                    issSelector.dispatchEvent(evt);
+                                }, timeout * 2);
 
                                 // Do this after the element has been added.
                                 setTimeout(() => {
                                     let seriesNumberInput = document.querySelector("input[id*='0:seriesNumber']");
                                     // Get trita number: TRITA-EECS-EX-2022:123 -> 2022:123
                                     seriesNumberInput.value = split[0].split("-").pop(); //.match(/.*:(\d+)/)[1];
-                                }, timeout * 2);
+                                }, timeout * 4);
                             };
 
                             // ---------------------------------
