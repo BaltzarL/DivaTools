@@ -279,7 +279,7 @@ window.addEventListener('load', function() {
                                     // Setting a smaller timeout will make it activate the button twice if you have multiple authors!
                                     evt.initEvent("change", false, true);
                                     issSelector.dispatchEvent(evt);
-                                }, timeout * 2);
+                                }, timeout * 1.5);
 
                                 // Do this after the element has been added.
                                 setTimeout(() => {
