@@ -112,7 +112,7 @@ window.addEventListener('load', function() {
             // Do not add the element twice!
             if (document.querySelector(`#masterButtonButton${i}`) == null) {
                 let masterButton = getButton("Master", () => {
-                    examLevels[i].selectedIndex = 4;
+                    examLevels[i].selectedIndex = 2;
                     examPoints[i].selectedIndex = 13;
                 });
                 masterButton.id = `masterButtonButton${i}`
@@ -426,7 +426,7 @@ window.addEventListener('load', function() {
         pasteButton.id = id;
         let globalPaste = document.querySelector("div[id='addForm:authorSerie']");
         if (document.querySelectorAll(`#${id}`).length == 0) {
-            globalPaste.prepend(pasteButton);
+            globalPaste?.prepend(pasteButton);
         };
     };
 
@@ -513,6 +513,7 @@ window.addEventListener('load', function() {
 
         updateAllHookedElements = () => {
             onClickHooks.forEach(element => {
+                if (!element) return;
                 addFunctionToElement(element, () => {
                     console.log("Hooked element clicked, dispatching document updates.");
                     setTimeout(() => {
@@ -554,5 +555,5 @@ window.addEventListener('load', function() {
         let yearInput = document.querySelector("#diva2addcontainer > div.diva2addtextmain.diva2maincolor > div.diva2addtextmainer > div.diva2addtextbotmargin > div.diva2addtextbotmargin > div:nth-child(9) > fieldset > div.diva2addtextplus5 > div.diva2addtextplus3 > div.diva2addtextchoicebox > input");
         yearInput.value = new Date().getFullYear();
     });
-    yearContainer.appendChild(yearButton);
+    yearContainer?.appendChild(yearButton);
 }, false);

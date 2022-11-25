@@ -1,12 +1,13 @@
 {
     "name": "Diva Tools",
     "description": "Adds various buttons to make input easier",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "manifest_version": 3,
     "content_scripts": [
         {
             "matches": [
-                "https://kth.diva-portal.org/dream/add/add2.jsf"
+                "https://kth.diva-portal.org/dream/add/add2.jsf",
+                "https://kth.diva-portal.org/dream/import/importForm.jsf"
             ],
             "js": [
                 "page2.js"
