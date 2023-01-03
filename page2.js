@@ -93,44 +93,46 @@ window.addEventListener('load', function() {
         };
     };
 
-    // Sets the exam level and the corresponding points, only points for kandidat and master coded so far.
-    setExamLevel = (level, examPoints) => {
-        examLevel.selectedIndex = level;
-        if (level == 4) {
-            examPoints.selectedIndex = 13;
-        } else if (level == 7) {
-            examPoints.selectedIndex = 5;
-        };
-    };
-
     // Adds all master/kandidat buttons
-    addAllMasterButtons = () => {
+    addAllExamButtons = () => {
         examLevels = document.querySelectorAll("select[name*='level']");
         examPoints = document.querySelectorAll("select[name*='creditsSelectMenu']");
+
+        // Data for selecting the correct index.
+        let examValues = {
+            'Kandidat' : { 'levelValue': 'M2', 'creditValue': '10' },
+            'Master' : { 'levelValue': 'H2', 'creditValue': '20' }
+        };
 
         for (let i = 0; i < examLevels.length; i++) {
             // Do not add the element twice!
             if (document.querySelector(`#masterButtonButton${i}`) == null) {
-                let masterButton = getButton("Master", () => {
-                    examLevels[i].selectedIndex = 2;
-                    examPoints[i].selectedIndex = 13;
+                let currentName = 'Master';
+
+                let masterButton = getButton(currentName, () => {
+                    examLevels[i].value = examValues[currentName].levelValue;
+                    examPoints[i].value = examValues[currentName].creditValue;
                 });
+
                 masterButton.id = `masterButtonButton${i}`
                 examLevels[i].parentElement.parentElement.appendChild(masterButton);
             }
 
             if (document.querySelector(`#kandidatButton${i}`) == null) {
-                let kandidatButton = getButton("Kandidat", () => {
-                    examLevels[i].selectedIndex = 7;
-                    examPoints[i].selectedIndex = 5;
+                let currentName = 'Kandidat';
+
+                let kandidatButton = getButton(currentName, () => {
+                    examLevels[i].value = examValues[currentName].levelValue;
+                    examPoints[i].value = examValues[currentName].creditValue;;
                 });
+
                 kandidatButton.id = `kandidatButton${i}`
                 examLevels[i].parentElement.parentElement.appendChild(kandidatButton);
             }
         };
         document.querySelectorAll("div.tox-editor-container").forEach(container => setPasteButton(container));
     };
-    addAllMasterButtons();
+    addAllExamButtons();
 
     // Adds the course and program save buttons
     addCourseProgramButtons = () => {
@@ -523,7 +525,7 @@ window.addEventListener('load', function() {
                         addPasteTrita();
                         updateHooks();
                         updateAllHookedElements();
-                        addAllMasterButtons();
+                        addAllExamButtons();
                         addCourseProgramButtons();
                         addOpenPdfButton();
                     }, timeout);
