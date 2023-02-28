@@ -25,7 +25,6 @@ Note: This extension does not automatically update, you will unfortunetly have t
 - [x] Open PDF 
 - [x] Trita paste 
 - [x] Add language buttons when new inputs gets created
-- [ ] Auto programme
 - [x] Making chrome extension
-- [ ] Support multiple supervisors/examiners
- 
+- [x] Support multiple supervisors/examiners
+- [ ] Automatically paste the title
